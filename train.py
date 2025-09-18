@@ -7,21 +7,6 @@ from stable_baselines3.common.callbacks import EvalCallback, BaseCallback
 import os
 
 
-class SaveEnvOnNewBest(BaseCallback):
-    def __init__(self, train_env, env_path, verbose=0):
-        super().__init__(verbose)
-        self.train_env = train_env
-        self.env_path = env_path
-
-    def _on_step(self) -> bool:
-        return True
-
-    def _on_rollout_end(self) -> None:
-        # This will be called by EvalCallback when a new best model is found
-        if hasattr(self, 'parent') and hasattr(self.parent, 'last_mean_reward'):
-            self.train_env.save(self.env_path)
-
-
 def linear_decay(init_val):
     def returned(progress_remaining):
         return init_val * progress_remaining
@@ -38,13 +23,10 @@ def train(timesteps=1_000_000):
     train_env = VecNormalize(make_vec_env("HalfCheetah-v5", 4))
     eval_env = VecNormalize(DummyVecEnv([lambda: Monitor(gym.make("HalfCheetah-v5"))]))
 
-    save_env_callback = SaveEnvOnNewBest(train_env, env_path)
-
     eval_call = EvalCallback(
         eval_env,
         log_path=logs_path,
         best_model_save_path=model_path,
-        callback_on_new_best=save_env_callback,
     )
 
     model = PPO(
@@ -56,6 +38,7 @@ def train(timesteps=1_000_000):
     )
 
     model.learn(timesteps, eval_call, progress_bar=True)
+    train_env.save(env_path)
 
 
 if __name__ == "__main__":
