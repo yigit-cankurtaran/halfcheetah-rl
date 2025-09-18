@@ -14,7 +14,7 @@ def linear_decay(init_val):
     return returned
 
 
-def train(timesteps=100_000):
+def train(timesteps=1_000_000):
     paths = ["model", "logs", "env"]
     for path in paths:
         os.makedirs(path, exist_ok=True)
@@ -35,6 +35,7 @@ def train(timesteps=100_000):
         "MlpPolicy",
         train_env,
         gamma=0.995,  # long locomotion task, we need higher consideration for later rewards
+        ent_coef=0.02,
         n_steps=4096,
         learning_rate=linear_decay(1e-5),  # decaying as it goes on
     )
