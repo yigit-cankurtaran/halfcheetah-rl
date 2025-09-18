@@ -14,11 +14,13 @@ def linear_decay(init_val):
     return returned
 
 
-def train(timesteps=1_000_000):
+def train(timesteps=100_000):
     paths = ["model", "logs", "env"]
     for path in paths:
         os.makedirs(path, exist_ok=True)
-    model_path, logs_path, env_path = paths
+    model_path, logs_path, _ = paths
+
+    env_path = "./env/vecnorm.pkl"
 
     train_env = VecNormalize(make_vec_env("HalfCheetah-v5", 4))
     eval_env = VecNormalize(DummyVecEnv([lambda: Monitor(gym.make("HalfCheetah-v5"))]))
