@@ -37,7 +37,7 @@ def train(timesteps=1_000_000):
         gamma=0.995,  # long locomotion task, we need higher consideration for later rewards
         ent_coef=0.02,
         n_steps=4096,
-        learning_rate=linear_decay(1e-5),  # decaying as it goes on
+        learning_rate=linear_decay(1e-3),  # decaying as it goes on
     )
 
     model.learn(timesteps, eval_call, progress_bar=True)
