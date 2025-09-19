@@ -14,7 +14,7 @@ def linear_decay(init_val):
     return returned
 
 
-def train(timesteps=1_000_000):
+def train(timesteps=5_000_000):
     paths = ["model", "logs", "env"]
     for path in paths:
         os.makedirs(path, exist_ok=True)
