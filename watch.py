@@ -8,14 +8,13 @@ import argparse
 import logging
 import os
 import json
-from pathlib import Path
 
 
 def setup_logging(log_level="INFO"):
     """setup logging configuration"""
     logging.basicConfig(
         level=getattr(logging, log_level),
-        format='%(asctime)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(levelname)s - %(message)s",
     )
     return logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ def compute_statistics(rewards, lengths):
         "length_mean": np.mean(lengths_array),
         "length_std": np.std(lengths_array),
         "length_min": np.min(lengths_array),
-        "length_max": np.max(lengths_array)
+        "length_max": np.max(lengths_array),
     }
 
     return stats
@@ -63,13 +62,13 @@ def save_results(rewards, lengths, stats, output_path=None):
     results = {
         "statistics": stats,
         "episodes": [
-            {"episode": i+1, "reward": float(reward), "length": int(length)}
+            {"episode": i + 1, "reward": float(reward), "length": int(length)}
             for i, (reward, length) in enumerate(zip(rewards, lengths))
-        ]
+        ],
     }
 
     try:
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(results, f, indent=2)
         logger.info(f"saved evaluation results to {output_path}")
     except Exception as e:
@@ -84,7 +83,7 @@ def watch(
     render=True,
     deterministic=True,
     output_path=None,
-    seed=None
+    seed=None,
 ):
     """evaluate trained model on environment"""
     logger = setup_logging()
@@ -101,15 +100,15 @@ def watch(
 
         # create environment
         render_mode = "human" if render else None
-        env = DummyVecEnv([
-            lambda: Monitor(gym.make(env_name, render_mode=render_mode))
-        ])
+        env = DummyVecEnv(
+            [lambda: Monitor(gym.make(env_name, render_mode=render_mode))]
+        )
 
         # load environment normalization
         try:
             env = VecNormalize.load(env_path, env)
             env.norm_reward = False  # don't normalize rewards during evaluation
-            env.training = False     # disable normalization updates
+            env.training = False  # disable normalization updates
             logger.info("loaded environment normalization")
         except Exception as e:
             logger.error(f"failed to load environment normalization: {e}")
@@ -124,7 +123,9 @@ def watch(
             raise
 
         # validate environment compatibility
-        if hasattr(env, 'observation_space') and hasattr(model.policy, 'observation_space'):
+        if hasattr(env, "observation_space") and hasattr(
+            model.policy, "observation_space"
+        ):
             env_obs_shape = env.observation_space.shape
             model_obs_shape = model.policy.observation_space.shape
             if env_obs_shape != model_obs_shape:
@@ -146,23 +147,25 @@ def watch(
             n_eval_episodes=n_episodes,
             render=render,
             deterministic=deterministic,
-            return_episode_rewards=True
+            return_episode_rewards=True,
         )
 
         # compute statistics
         stats = compute_statistics(rewards, lengths)
 
         # display results
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("EVALUATION RESULTS")
-        print("="*50)
+        print("=" * 50)
 
         for i in range(len(rewards)):
-            print(f"episode {i + 1:2d}: reward={rewards[i]:8.2f}, length={lengths[i]:4d}")
+            print(
+                f"episode {i + 1:2d}: reward={rewards[i]:8.2f}, length={lengths[i]:4d}"
+            )
 
-        print("\n" + "-"*50)
+        print("\n" + "-" * 50)
         print("STATISTICS")
-        print("-"*50)
+        print("-" * 50)
         print(f"episodes:     {stats['n_episodes']}")
         print(f"reward mean:  {stats['reward_mean']:8.2f} ± {stats['reward_std']:6.2f}")
         print(f"reward range: {stats['reward_min']:8.2f} to {stats['reward_max']:8.2f}")
@@ -171,11 +174,11 @@ def watch(
 
         # confidence interval for mean reward (95%)
         if len(rewards) > 1:
-            se = stats['reward_std'] / np.sqrt(stats['n_episodes'])
+            se = stats["reward_std"] / np.sqrt(stats["n_episodes"])
             ci_95 = 1.96 * se
             print(f"reward 95% ci: {stats['reward_mean']:8.2f} ± {ci_95:6.2f}")
 
-        print("="*50)
+        print("=" * 50)
 
         # save results if requested
         save_results(rewards, lengths, stats, output_path)
@@ -189,29 +192,37 @@ def watch(
         raise
     finally:
         # cleanup
-        if 'env' in locals():
+        if "env" in locals():
             env.close()
 
 
 def parse_args():
     """parse command line arguments"""
     parser = argparse.ArgumentParser(description="evaluate trained ppo model")
-    parser.add_argument("--env-path", default="./env/vecnorm.pkl",
-                       help="path to environment normalization file")
-    parser.add_argument("--model-path", default="./model/best_model.zip",
-                       help="path to trained model")
-    parser.add_argument("--env-name", default="HalfCheetah-v5",
-                       help="gymnasium environment name")
-    parser.add_argument("--n-episodes", type=int, default=5,
-                       help="number of evaluation episodes")
-    parser.add_argument("--no-render", action="store_true",
-                       help="disable rendering")
-    parser.add_argument("--stochastic", action="store_true",
-                       help="use stochastic policy instead of deterministic")
-    parser.add_argument("--output", type=str,
-                       help="path to save evaluation results (json)")
-    parser.add_argument("--seed", type=int,
-                       help="random seed for evaluation")
+    parser.add_argument(
+        "--env-path",
+        default="./env/vecnorm.pkl",
+        help="path to environment normalization file",
+    )
+    parser.add_argument(
+        "--model-path", default="./model/best_model.zip", help="path to trained model"
+    )
+    parser.add_argument(
+        "--env-name", default="HalfCheetah-v5", help="gymnasium environment name"
+    )
+    parser.add_argument(
+        "--n-episodes", type=int, default=5, help="number of evaluation episodes"
+    )
+    parser.add_argument("--no-render", action="store_true", help="disable rendering")
+    parser.add_argument(
+        "--stochastic",
+        action="store_true",
+        help="use stochastic policy instead of deterministic",
+    )
+    parser.add_argument(
+        "--output", type=str, help="path to save evaluation results (json)"
+    )
+    parser.add_argument("--seed", type=int, help="random seed for evaluation")
 
     return parser.parse_args()
 
@@ -227,5 +238,5 @@ if __name__ == "__main__":
         render=not args.no_render,
         deterministic=not args.stochastic,
         output_path=args.output,
-        seed=args.seed
+        seed=args.seed,
     )
