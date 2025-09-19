@@ -1,0 +1,12 @@
+{
+  "env_name": "HalfCheetah-v5",
+  "n_envs": 4,
+  "timesteps": 5000000,
+  "gamma": 0.995,
+  "ent_coef": 0.02,
+  "n_steps": 4096,
+  "learning_rate": 0.001,
+  "seed": 42,
+  "eval_freq": 10000,
+  "n_eval_episodes": 5
+}
